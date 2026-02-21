@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alex Academy Ecosystem</title>
+
+  <!-- Google Fonts — Orbitron · Exo 2 · Share Tech Mono -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;1,100;1,200;1,300;1,400&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <link rel="stylesheet" href="style.css">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0ea5e9">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- =====================================================
+     STARFIELD CANVAS — fixed background, z-index 0
+===================================================== -->
+<canvas id="starCanvas"></canvas>
+
+<!-- =====================================================
+     LOADING SCREEN
+===================================================== -->
+<div id="loadingScreen">
+  <!-- Animated hexagon logo -->
+  <svg class="logo-hex" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lgLoad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#00f5ff"/>
+        <stop offset="50%"  stop-color="#0ea5e9"/>
+        <stop offset="100%" stop-color="#818cf8"/>
+      </linearGradient>
+    </defs>
+    <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+             fill="none" stroke="url(#lgLoad)" stroke-width="2"/>
+    <polygon points="40,12 66,27 66,53 40,68 14,53 14,27"
+             fill="url(#lgLoad)" fill-opacity="0.08"/>
+    <text x="40" y="45" text-anchor="middle"
+          font-family="Orbitron,sans-serif" font-size="16" font-weight="800"
+          fill="url(#lgLoad)">AAE</text>
+  </svg>
+
+  <!-- Boot sequence text -->
+  <div class="boot-log" id="bootLog"></div>
+
+  <!-- Progress bar -->
+  <div class="load-bar-wrap">
+    <div class="load-bar" id="loadBar"></div>
+  </div>
+</div>
+
+<!-- =====================================================
+     LOGIN SCREEN
+===================================================== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo-wrap">
+      <svg class="logo-hex" viewBox="0 0 80 80" fill="none">
+        <defs>
+          <linearGradient id="lgLogin" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="#00f5ff"/>
+            <stop offset="50%"  stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#818cf8"/>
+          </linearGradient>
+        </defs>
+        <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                 fill="none" stroke="url(#lgLogin)" stroke-width="2"/>
+        <polygon points="40,12 66,27 66,53 40,68 14,53 14,27"
+                 fill="url(#lgLogin)" fill-opacity="0.08"/>
+        <text x="40" y="45" text-anchor="middle"
+              font-family="Orbitron,sans-serif" font-size="16" font-weight="800"
+              fill="url(#lgLogin)">AAE</text>
+      </svg>
+    </div>
+
+    <div class="login-title">Alex Academy Ecosystem</div>
+    <div class="login-sub">Enter your name, Scholar</div>
+
+    <input
+      type="text"
+      class="login-input"
+      id="nameInput"
+      placeholder="Type your name here..."
+      maxlength="40"
+    >
+    <button class="login-btn" id="loginBtn">⬡ Initializing System</button>
+    <div class="login-footer">· ALEX ACADEMY ECOSYSTEM ·</div>
+  </div>
+</div>
+
+<!-- =====================================================
+     MAIN APP
+===================================================== -->
+<div id="app">
+
+  <!-- ── FIXED HEADER ── -->
+  <div id="header">
+    <!-- Hamburger -->
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- Brand -->
+    <div class="header-brand">
+      <svg width="24" height="24" viewBox="0 0 80 80" fill="none">
+        <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                 fill="none" stroke="#0ea5e9" stroke-width="2"/>
+        <text x="40" y="47" text-anchor="middle"
+              font-family="Orbitron,sans-serif" font-size="18" font-weight="800"
+              fill="#0ea5e9">A</text>
+      </svg>
+      AAE
+    </div>
+
+    <!-- Live clock -->
+    <div class="header-clock-wrap">
+      <div id="headerClock">00:00:00</div>
+      <div id="headerDate">—</div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="header-actions">
+      <div class="notif-btn" title="Notifications">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+      <div class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">🌙</div>
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR OVERLAY ── -->
+  <div id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-avatar" id="sidebarAvatar">🎓</div>
+      <div>
+        <div class="sidebar-user-name" id="sidebarName">Scholar</div>
+        <div class="sidebar-user-sub">Alex Academy Scholar</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">🏠</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('schedule')">
+        <span class="nav-icon">📅</span> Schedule
+      </div>
+      <div class="nav-item" onclick="showPage('weekly')">
+        <span class="nav-icon">🗓</span> Weekly View
+      </div>
+      <div class="nav-item" onclick="showPage('focus')">
+        <span class="nav-icon">🎯</span> Focus Mode
+      </div>
+
+      <div class="nav-section-label">Data</div>
+      <div class="nav-item" onclick="showPage('metrics')">
+        <span class="nav-icon">📊</span> Metrics
+      </div>
+      <div class="nav-item" onclick="showPage('export')">
+        <span class="nav-icon">💾</span> Export &amp; Import
+      </div>
+
+      <div class="nav-section-label">Customize</div>
+      <div class="nav-item" onclick="showPage('personalization')">
+        <span class="nav-icon">👤</span> Personalization
+      </div>
+      <div class="nav-item" onclick="showPage('settings')">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div id="mainContent">
+
+    <!-- ============================================================
+         PAGE: DASHBOARD
+    ============================================================ -->
+    <section class="page active" id="pageDashboard">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="welcome-greeting">
+          Welcome back,
+          <span class="welcome-name" id="welcomeName" onclick="eggClick()">Scholar</span>
+        </div>
+        <div class="welcome-tagline">· Alex Academy Ecosystem ·</div>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+
+        <!-- Next Class Countdown -->
+        <div class="glass-card">
+          <div class="card-title">⏱ Next Class</div>
+          <div class="countdown-display">
+            <span id="cdH">00</span><span class="countdown-colon">:</span>
+            <span id="cdM">00</span><span class="countdown-colon">:</span>
+            <span id="cdS">00</span>
+          </div>
+          <div class="countdown-sub">Until next class</div>
+          <div class="countdown-course" id="countdownCourse">No upcoming classes</div>
+        </div>
+
+        <!-- Weather -->
+        <div class="glass-card">
+          <div class="card-title">🌤 Weather</div>
+          <div class="weather-wrap">
+            <div class="weather-icon" id="weatherIcon">⛅</div>
+            <div class="weather-info">
+              <div class="weather-temp" id="weatherTemp">28°C</div>
+              <div class="weather-desc" id="weatherDesc">Partly Cloudy</div>
+              <div class="weather-meta" id="weatherMeta">📍 Your City</div>
+            </div>
+            <div class="weather-right" id="weatherRight"></div>
+          </div>
+        </div>
+
+        <!-- Daily Motivation -->
+        <div class="glass-card">
+          <div class="card-title">💡 Daily Motivation</div>
+          <div class="quote-text"  id="quoteText">Loading inspiration...</div>
+          <div class="quote-author" id="quoteAuthor">—</div>
+        </div>
+
+        <!-- Academic Stats -->
+        <div class="glass-card">
+          <div class="card-title">📊 Academic Stats</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-num" id="statSKS">0</div>
+              <div class="stat-label">SKS/Week</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num" id="statHoursWeek">0</div>
+              <div class="stat-label">Weekly Hours</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num" id="statHoursDay">0</div>
+              <div class="stat-label">Daily Hours</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Classes -->
+        <div class="glass-card">
+          <div class="card-title">📋 Today's Classes</div>
+          <div id="todayClassList"></div>
+        </div>
+
+        <!-- Study Mode -->
+        <div class="glass-card">
+          <div class="card-title">📚 Study Mode</div>
+          <div class="mode-btns">
+            <div class="mode-btn active" id="modeWeekday" onclick="setMode('weekday')">
+              📚 Weekday
+            </div>
+            <div class="mode-btn" id="modeWeekend" onclick="setMode('weekend')">
+              🏖 Weekend
+            </div>
+          </div>
+          <div class="mode-desc" id="modeDesc">
+            Full academic mode: lectures, labs, and study groups.
+          </div>
+        </div>
+
+        <!-- Tips & Tricks (full width) -->
+        <div class="glass-card card-full">
+          <div class="card-title">💡 Tips &amp; Tricks</div>
+          <div class="tips-scroll" id="tipsContainer"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: SCHEDULE
+    ============================================================ -->
+    <section class="page" id="pageSchedule">
+      <div class="page-header">
+        <div class="page-title">📅 Schedule</div>
+        <button class="btn-primary" onclick="toggleForm()">+ Add Class</button>
+      </div>
+
+      <!-- Add Class Form (collapsible) -->
+      <div class="form-collapse glass-card" id="addClassForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Course Name</label>
+            <input type="text" class="form-input" id="fName" placeholder="e.g. Calculus II">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lecturer</label>
+            <input type="text" class="form-input" id="fLecturer" placeholder="Dr. Smith">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Day</label>
+            <select class="form-select" id="fDay">
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+              <option value="0">Sunday</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Room</label>
+            <input type="text" class="form-input" id="fRoom" placeholder="Room 101">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Time</label>
+            <input type="time" class="form-input" id="fStart" value="08:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Time</label>
+            <input type="time" class="form-input" id="fEnd" value="09:40">
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKS</label>
+            <input type="number" class="form-input" id="fSKS" min="1" max="6" value="2">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <input type="color" class="form-input" id="fColor" value="#0ea5e9"
+                   style="height:44px;padding:4px;">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" onclick="toggleForm()">Cancel</button>
+          <button class="btn-primary"   onclick="saveClass()">Save Class</button>
+        </div>
+      </div>
+
+      <!-- Day Selector -->
+      <div class="day-selector" id="daySelector"></div>
+
+      <!-- Schedule List -->
+      <div id="scheduleList"></div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: WEEKLY VIEW
+    ============================================================ -->
+    <section class="page" id="pageWeekly">
+      <div class="page-header">
+        <div class="page-title">🗓 Weekly View</div>
+      </div>
+      <div class="glass-card" style="padding:0;overflow:hidden;">
+        <div class="weekly-wrap">
+          <div class="weekly-grid" id="weeklyGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: FOCUS MODE
+    ============================================================ -->
+    <section class="page" id="pageFocus">
+      <div class="focus-center">
+        <div class="card-title" style="text-align:center;margin-bottom:24px;">🎯 Focus Mode</div>
+
+        <!-- Preset buttons -->
+        <div class="preset-btns">
+          <button class="preset-btn active" onclick="setPreset(30,this)">30 MIN</button>
+          <button class="preset-btn"        onclick="setPreset(60,this)">60 MIN</button>
+          <button class="preset-btn"        onclick="setPreset(120,this)">120 MIN</button>
+        </div>
+
+        <!-- Circular SVG Timer -->
+        <div class="timer-wrap">
+          <svg id="focusSvg" viewBox="0 0 280 280">
+            <circle id="focusTrack"    cx="140" cy="140" r="120"/>
+            <circle id="focusProgress" cx="140" cy="140" r="120"/>
+          </svg>
+          <div class="timer-inner">
+            <div id="focusTimeDisplay">30:00</div>
+            <div id="focusStatus">READY</div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="focus-controls">
+          <button class="ctrl-btn-sm"   onclick="resetFocus()" title="Reset">↺</button>
+          <button class="ctrl-btn-main" id="playPauseBtn" onclick="toggleFocus()">▶</button>
+          <button class="ctrl-btn-sm"   onclick="skipFocus()" title="Skip">⏭</button>
+        </div>
+
+        <!-- Ambient Sound -->
+        <select class="ambient-select" id="ambientSelect">
+          <option value="none">🔇 No Ambient Sound</option>
+          <option value="rain">🌧 Rain</option>
+          <option value="cafe">☕ Café</option>
+          <option value="white">〰 White Noise</option>
+          <option value="forest">🌲 Forest</option>
+        </select>
+
+        <!-- Session Stats -->
+        <div class="glass-card">
+          <div class="card-title">Session Stats</div>
+          <div class="session-stats">
+            <div>
+              <div class="sess-num" id="sessCount">0</div>
+              <div class="sess-label">Sessions</div>
+            </div>
+            <div>
+              <div class="sess-num" id="sessTotalH">0h 0m</div>
+              <div class="sess-label">Total Focus</div>
+            </div>
+            <div>
+              <div class="sess-num" id="sessStreak">0</div>
+              <div class="sess-label">Day Streak</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: METRICS
+    ============================================================ -->
+    <section class="page" id="pageMetrics">
+      <div class="page-header">
+        <div class="page-title">📊 Metrics</div>
+      </div>
+
+      <!-- Overview cards -->
+      <div class="metrics-grid" id="metricsOverview"></div>
+
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+        <div class="glass-card">
+          <div class="card-title">Weekly Study Hours</div>
+          <div id="weeklyBars"></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title">Subject Breakdown</div>
+          <div id="subjectBreakdown"></div>
+        </div>
+      </div>
+
+      <!-- Session history -->
+      <div class="glass-card" style="margin-top:20px;">
+        <div class="card-title">Recent Sessions</div>
+        <div id="sessionHistory"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: EXPORT & IMPORT
+    ============================================================ -->
+    <section class="page" id="pageExport">
+      <div class="page-header">
+        <div class="page-title">💾 Export &amp; Import</div>
+      </div>
+      <div class="export-grid">
+        <!-- Export -->
+        <div class="glass-card action-card" onclick="exportData()">
+          <div class="action-icon">📤</div>
+          <div class="action-title">Export Data</div>
+          <div class="action-desc">Download your complete AAE data as a JSON backup file.</div>
+        </div>
+        <!-- Import -->
+        <div class="glass-card action-card"
+             onclick="document.getElementById('importFile').click()">
+          <div class="action-icon">📥</div>
+          <div class="action-title">Import Data</div>
+          <div class="action-desc">Restore from a previously exported AAE backup file.</div>
+          <input
+            type="file" id="importFile" accept=".json"
+            style="display:none" onchange="importData(event)"
+          >
+        </div>
+        <!-- Reset (Danger Zone) -->
+        <div class="glass-card action-card danger-card" onclick="resetData()">
+          <div class="action-icon">⚠️</div>
+          <div class="action-title" style="color:#ef4444;">Danger Zone</div>
+          <div class="action-desc">Reset ALL data permanently. This cannot be undone.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: PERSONALIZATION
+    ============================================================ -->
+    <section class="page" id="pagePersonalization">
+      <div class="page-header">
+        <div class="page-title">👤 Personalization</div>
+      </div>
+      <div class="glass-card" style="max-width:600px;margin:0 auto;">
+        <!-- Avatar -->
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="profileAvatar" onclick="cycleAvatar()">🎓</div>
+          <div style="margin-top:8px;font-size:12px;color:var(--text-dim);">Click to change avatar</div>
+        </div>
+        <!-- Profile fields -->
+        <div class="profile-grid">
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input type="text" class="form-input" id="pName">
+          </div>
+          <div class="form-group">
+            <label class="form-label">University</label>
+            <input type="text" class="form-input" id="pUni">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Major / Program</label>
+            <input type="text" class="form-input" id="pMajor">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select class="form-select" id="pSemester">
+              <option value="1">Semester 1</option><option value="2">Semester 2</option>
+              <option value="3">Semester 3</option><option value="4">Semester 4</option>
+              <option value="5">Semester 5</option><option value="6">Semester 6</option>
+              <option value="7">Semester 7</option><option value="8">Semester 8</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Student ID</label>
+            <input type="text" class="form-input" id="pNIM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Personal Motto</label>
+            <input type="text" class="form-input" id="pMotto">
+          </div>
+        </div>
+        <div style="margin-top:16px;text-align:right;">
+          <button class="btn-primary" onclick="saveProfile()">Save Profile</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PAGE: SETTINGS
+    ============================================================ -->
+    <section class="page" id="pageSettings">
+      <div class="page-header">
+        <div class="page-title">⚙️ Settings</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+
+        <!-- Notifications -->
+        <div class="glass-card settings-section">
+          <div class="settings-title">🔔 Notifications</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Class Reminder</div>
+              <div class="setting-sub">60 min before class</div>
+            </div>
+            <div class="toggle" id="tNotifClass"
+                 onclick="toggleSetting('notif_class','tNotifClass')"></div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Morning Greeting</div>
+              <div class="setting-sub">Daily morning message</div>
+            </div>
+            <div class="toggle" id="tNotifMorning"
+                 onclick="toggleSetting('notif_morning','tNotifMorning')"></div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Night Rest Reminder</div>
+              <div class="setting-sub">Time to sleep</div>
+            </div>
+            <div class="toggle" id="tNotifNight"
+                 onclick="toggleSetting('notif_night','tNotifNight')"></div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Study Reminder</div>
+              <div class="setting-sub">Evening study prompt</div>
+            </div>
+            <div class="toggle" id="tNotifStudy"
+                 onclick="toggleSetting('notif_study','tNotifStudy')"></div>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="glass-card settings-section">
+          <div class="settings-title">🎨 Appearance</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Auto Theme</div>
+              <div class="setting-sub">Light 06:00–17:00, dark otherwise</div>
+            </div>
+            <div class="toggle" id="tAutoTheme"
+                 onclick="toggleSetting('auto_theme','tAutoTheme')"></div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Starfield Intensity</div>
+              <div class="setting-sub">Number of stars (0–3)</div>
+            </div>
+            <input type="range" class="range-slider" min="0" max="3" step="1"
+                   id="starIntensity"
+                   oninput="saveSetting('star_intensity',this.value)">
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Accent Color</div>
+            </div>
+            <div class="accent-dots">
+              <div class="accent-dot active" style="background:#0ea5e9"
+                   onclick="setAccent('#0ea5e9','#06b6d4',this)"></div>
+              <div class="accent-dot" style="background:#818cf8"
+                   onclick="setAccent('#818cf8','#a78bfa',this)"></div>
+              <div class="accent-dot" style="background:#22c55e"
+                   onclick="setAccent('#22c55e','#4ade80',this)"></div>
+              <div class="accent-dot" style="background:#f59e0b"
+                   onclick="setAccent('#f59e0b','#fbbf24',this)"></div>
+              <div class="accent-dot" style="background:#ef4444"
+                   onclick="setAccent('#ef4444','#f87171',this)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Preferences -->
+        <div class="glass-card settings-section">
+          <div class="settings-title">📅 Schedule</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">First Day of Week</div>
+            </div>
+            <select class="form-select" style="width:130px" id="firstDaySelect"
+                    onchange="saveSetting('first_day',this.value)">
+              <option value="1">Monday</option>
+              <option value="0">Sunday</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Morning Greeting Time</div>
+            </div>
+            <input type="time" class="form-input" style="width:120px"
+                   id="morningTimeInput"
+                   onchange="saveSetting('morning_time',this.value)">
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-info">Night Rest Time</div>
+            </div>
+            <input type="time" class="form-input" style="width:120px"
+                   id="nightTimeInput"
+                   onchange="saveSetting('night_time',this.value)">
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /#mainContent -->
+</div><!-- /#app -->
+
+<!-- =====================================================
+     NOTES MODAL
+===================================================== -->
+<div id="modalOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Notes</div>
+      <span class="modal-close" onclick="closeModal()">✕</span>
+    </div>
+    <textarea class="notes-area" id="notesArea"
+              placeholder="Write your notes here..."></textarea>
+    <div>
+      <label class="form-label" style="display:block;margin-bottom:8px;">📸 Photos</label>
+      <div class="photo-preview-wrap" id="photoPreview"></div>
+      <input type="file" id="photoInput" accept="image/*" multiple
+             style="display:none" onchange="handlePhotos(event)">
+      <button class="btn-secondary"
+              onclick="document.getElementById('photoInput').click()"
+              style="font-size:12px;padding:6px 12px;">+ Add Photo</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary"   onclick="saveNotes()">Save Notes</button>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     TOAST CONTAINER
+===================================================== -->
+<div id="toastContainer"></div>
+
+<!-- =====================================================
+     EASTER EGG — FOCUS FIGHTER GAME
+===================================================== -->
+<div id="gameOverlay">
+  <div id="gameContainer">
+    <button id="gameClose" onclick="closeGame()">✕ Close</button>
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+    <div id="gameHUD">
+      <span>SCORE: <span id="gScore">0</span></span>
+      <span>WAVE: <span id="gWave">1</span></span>
+      <span>❤️ <span id="gLives">3</span></span>
+    </div>
+    <div id="gameOver">
+      <div class="go-title">GAME OVER</div>
+      <div class="go-score">Score: <span id="goScore">0</span></div>
+      <button class="go-restart" onclick="startGame()">PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     External script (loaded AFTER DOM)
+===================================================== -->
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("PWA Ready 🚀"))
+        .catch(err => console.error("SW Failed:", err));
+    });
+  }
+</script>
+</body>
+</html>
